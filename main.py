@@ -1,4 +1,4 @@
 #!/usr/bin/python
 
-import biosignalformat
-biosignalformat.test()
+import biosignalformat.test
+biosignalformat.test.test_all()
