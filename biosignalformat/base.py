@@ -69,7 +69,7 @@ class Experiment(BaseFile):
 class Subject(BaseFile):
     """Represents a subject experiment in the sense of BIF."""
     def __init__(self, metadata={}):
-        super(Experiment, self).__init__(metadata)
+        super(Subject, self).__init__(metadata)
         self.experiment = None
         self.sessions = []
         self.deletedSessions = []
@@ -107,7 +107,7 @@ class Subject(BaseFile):
 class Session(BaseFile):
     """Represents a session experiment of a subject in the sense of BIF."""
     def __init__(self, metadata={}):
-        super(Experiment, self).__init__(metadata)
+        super(Session, self).__init__(metadata)
         self.subject = None
         self.channelDatasets = []
         self.deletedChannelDatasets = []
@@ -154,7 +154,7 @@ class ChannelDataset(BaseFile):
     akward situation. But, the file format need to be standard
     """
     def __init__(self, metadata={}):
-        super(Experiment, self).__init__(metadata)
+        super(ChannelDataset, self).__init__(metadata)
         self.session = None
         self.rawData = []
 
