@@ -13,12 +13,16 @@ class BaseFile(object):
         self.uniqueID = str(uuid.uuid1())
         self.metadata["uniqueID"] = self.uniqueID
 
-    def write(self, provider, dirpath=[]):
+    def write(self, provider, dirpath=None):
         """Write the metadata inside the archive provider, with a like-list directory path. """
+        if dirpath is None:
+            dirpath = self.pathname
         provider.add(dirpath + [self.MetadataFileName], json.dumps(self.metadata, indent=4))
 
-    def remove(self, provider, dirpath=[]):
+    def remove(self, provider, dirpath=None):
         """Removes the metadata inside the archive provider, with a like-list directory path. """
+        if dirpath is None:
+            dirpath = self.pathname
         provider.remove(dirpath + [self.MetadataFileName])
 
     def readMetadata(self, provider, dirpath=[]):
@@ -76,17 +80,17 @@ class Subject(BaseFile):
 
     def write(self, provider):
         """Write the content inside the archive provide."""
-        super(Experiment, self).write(provider)
+        super(Subject, self).write(provider)
         for session in self.sessions:
             session.write(provider)
-        for session in self.deletedSession:
+        for session in self.deletedSessions:
             session.remove(provider)
         self.deletedSession = []
 
     def remove(self, provider):
         """Removes the content inside the archive provide."""
-        super(Experiment, self).remove(provider)
-        for subject in self.session + self.deletedSession:
+        super(Subject, self).remove(provider)
+        for subject in self.session + self.deletedSessions:
             session.remove(provider)
         self.deletedSession = []
 
@@ -98,7 +102,7 @@ class Subject(BaseFile):
     def removeSession(self, session):
         """Remove a session."""
         self.sessions.remove(session)
-        self.deletedSession.append(session)
+        self.deletedSessions.append(session)
 
     @property
     def pathname(self):
@@ -114,34 +118,33 @@ class Session(BaseFile):
 
     def write(self, provider):
         """Write the content inside the archive provide."""
-        super(Experiment, self).write(provider)
+        super(Session, self).write(provider)
         for channelDataset in self.channelDatasets:
             channelDataset.write(provider)
-        for channelDataset in self.channelDatasets:
+        for channelDataset in self.deletedChannelDatasets:
             channelDataset.remove(provider)
         self.deletedChannelDatasets = []
-        provider.add(dirpath + [self.MetadataFileName], json.dumps(self.metadata, indent=4))
 
     def remove(self, provider):
         """Removes the content inside the archive provide."""
-        super(Experiment, self).remove(provider)
+        super(Session, self).remove(provider)
         for channelDataset in self.channelDatasets + self.deletedChannelDatasets:
             channelDataset.remove(provider)
         self.deletedChannelDatasets = []
 
-    def addChannelDatasets(self, channelDataset):
+    def addChannelDataset(self, channelDataset):
         """Add a channel dataset, recognizing it as a child XD."""
         self.channelDatasets.append(channelDataset)
         channelDataset.session = self
 
-    def removeChannelDatasets(self, channelDataset):
+    def removeChannelDataset(self, channelDataset):
         """Remove a session."""
         self.channelDatasets.remove(channelDataset)
         self.deletedChannelDatasets.append(channelDataset)
 
     @property
     def pathname(self):
-        return self.experiment.pathname + ["SESSION-" + self.uniqueID]
+        return self.subject.pathname + ["SESSION-" + self.uniqueID]
 
 
 class ChannelDataset(BaseFile):
@@ -160,12 +163,12 @@ class ChannelDataset(BaseFile):
 
     def write(self, provider):
         """Write the content inside the archive provide."""
-        super(Experiment, self).write(provider)
+        super(ChannelDataset, self).write(provider)
         provider.add(self.pathname + [self.RawDataFileName], json.dumps(self.rawData))
 
     def remove(self, provider):
         """Removes the content inside the archive provide."""
-        super(Experiment, self).remove(provider)
+        super(ChannelDataset, self).remove(provider)
         provider.remove(self.pathname + [self.RawDataFileName])
 
     def loadData(self, provider):
@@ -175,4 +178,4 @@ class ChannelDataset(BaseFile):
 
     @property
     def pathname(self):
-        return self.experiment.pathname + ["CHANNEL-" + self.uniqueID]
+        return self.session.pathname + ["CHANNEL-" + self.uniqueID]
