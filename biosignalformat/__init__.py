@@ -4,3 +4,4 @@ from datatype import *
 from archiver import *
 from structure import *
 from calculated import *
+from plugins import *

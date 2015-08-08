@@ -3,7 +3,7 @@ import unittest
 from biosignalformat import *
 
 class TestBaseObjects(unittest.TestCase):
-    def atest_MinimalExperiment(self):
+    def test_MinimalExperiment(self):
         provider = SevenZipArchiveProvider("experiment001.7z")
         #provider = ZipArchiveProvider("experiment001.zip")
         experiment = Experiment({
@@ -74,6 +74,13 @@ class TestBaseObjects(unittest.TestCase):
         self.assertEqual(metadata["name"], "Exp!")
         self.assertEqual(metadata["description"], "blah!")
 
+
+class TestPlugins(unittest.TestCase):
+    def test_plugins(self):
+        from biosignalformat.plugins.cmd import sample
+        #self.assertEqual(sample.ConstantVariable, 12)
+
 def test_all():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestBaseObjects)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    test_loader = unittest.TestLoader()
+    unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestBaseObjects))
+    unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestPlugins))
