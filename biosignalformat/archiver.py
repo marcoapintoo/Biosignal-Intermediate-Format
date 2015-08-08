@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 from plumbum import local as local_cmd
+from plumbum import ProcessExecutionError
 
 class SevenZipArchiveProvider(object):
     TemporalFileName = ".temp_arch_file"
@@ -45,7 +46,11 @@ class ZipArchiveProvider(object):
             f.write(content)
         local_cmd.cwd.chdir("./" + self.TemporalDirName)
         command = self.zip["-9"]["-Z"]["bzip2"]["../" + self.archivename]["-u"]["-m"]["-r"]["."]
-        command()
+        try:
+            command()
+        except ProcessExecutionError as e:
+            if e.retcode != 12: #Nothing to do
+                raise e
         local_cmd.cwd.chdir("./..")
         shutil.rmtree(self.TemporalDirName)
 

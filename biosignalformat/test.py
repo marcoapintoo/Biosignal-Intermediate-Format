@@ -10,7 +10,8 @@ class TestBaseObjects(unittest.TestCase):
             "name": "Exp!",
             "description": "blah!"
         })
-        experiment.write(provider)
+        experiment.setArchiver(provider)
+        experiment.write()
         with self.assertRaises(Exception):
             experiment.remove(provider)
         metadata = experiment.readMetadata(provider)
@@ -18,11 +19,12 @@ class TestBaseObjects(unittest.TestCase):
         self.assertEqual(metadata["description"], "blah!")
 
     def test_MinimalStructure7z(self):
-        provider = SevenZipArchiveProvider("experiment002.7z")
+        provider = SevenZipArchiveProvider("experiment002B.7z")
         experiment = Experiment({
             "name": "Exp!",
             "description": "blah!"
         })
+        experiment.setArchiver(provider)
         subject = Subject({
             "name": "Subject001",
             "description": "description-subject!"
@@ -33,13 +35,14 @@ class TestBaseObjects(unittest.TestCase):
             "description": "description-subject-session!"
         })
         subject.addSession(session)
-        channelDataset = ChannelDataset({
+        channel = Channel({
             "name": "AF8"
         })
-        session.addChannelDataset(channelDataset)
-        channelDataset.rawData = [1e-1222, 2.344, 3.14159265358979323846264338327950288419716939937510582097494459230781640629]
-        experiment.write(provider)
-        metadata = experiment.readMetadata(provider)
+        session.addChannel(channel)
+        #channelDataset.rawData = [1e-1222, 2.344, 3.14159265358979323846264338327950288419716939937510582097494459230781640629]
+        channel.setData([c/1e-12 for c in range(500000)])
+        experiment.write()
+        metadata = experiment.readMetadata()
         self.assertEqual(metadata["name"], "Exp!")
         self.assertEqual(metadata["description"], "blah!")
 
@@ -49,6 +52,7 @@ class TestBaseObjects(unittest.TestCase):
             "name": "Exp!",
             "description": "blah!"
         })
+        experiment.setArchiver(provider)
         subject = Subject({
             "name": "Subject001",
             "description": "description-subject!"
@@ -59,13 +63,14 @@ class TestBaseObjects(unittest.TestCase):
             "description": "description-subject-session!"
         })
         subject.addSession(session)
-        channelDataset = ChannelDataset({
+        channel = Channel({
             "name": "AF8"
         })
-        session.addChannelDataset(channelDataset)
-        channelDataset.rawData = [1e-1222, 2.344, 3.14159265358979323846264338327950288419716939937510582097494459230781640629]
-        experiment.write(provider)
-        metadata = experiment.readMetadata(provider)
+        session.addChannel(channel)
+        #channelDataset.rawData = [1e-1222, 2.344, 3.14159265358979323846264338327950288419716939937510582097494459230781640629]
+        channel.setData([c/1e-12 for c in range(500000)])
+        experiment.write()
+        metadata = experiment.readMetadata()
         self.assertEqual(metadata["name"], "Exp!")
         self.assertEqual(metadata["description"], "blah!")
 
