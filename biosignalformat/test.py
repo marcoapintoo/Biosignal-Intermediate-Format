@@ -77,10 +77,17 @@ class TestBaseObjects(unittest.TestCase):
 
 class TestPlugins(unittest.TestCase):
     def test_plugins(self):
-        from biosignalformat.plugins.cmd import sample
-        #self.assertEqual(sample.ConstantVariable, 12)
+        from biosignalformat.external import sample
+        self.assertEqual(sample.ConstantVariable, 12)
+
+class TestConverters(unittest.TestCase):
+    def test_edf(self):
+        from biosignalformat.external import base_converter
+        importer = base_converter.EDFImporter("ExampleEDF.edf", "ExampleEDFAscii.bif.7z")
+        importer.convert()
 
 def test_all():
     test_loader = unittest.TestLoader()
-    unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestBaseObjects))
-    unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestPlugins))
+    #unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestBaseObjects))
+    #unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestPlugins))
+    unittest.TextTestRunner(verbosity=2).run(test_loader.loadTestsFromTestCase(TestConverters))

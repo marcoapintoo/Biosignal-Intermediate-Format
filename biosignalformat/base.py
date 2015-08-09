@@ -2,6 +2,7 @@
 import os
 import sys
 import uuid
+import collections
 import ujson as json
 import hashlib
 
@@ -10,7 +11,7 @@ class BaseFile(object):
     """Represents an abstract structure."""
     def __init__(self, metadata={}):
         super(BaseFile, self).__init__()
-        self.metadata = metadata
+        self.metadata = metadata or {}
         self.uniqueID = str(uuid.uuid1())
         self.objectHash = ""
         self.calculatedInformation = {}
@@ -23,6 +24,12 @@ class BaseFile(object):
     def remove(self, dirpath=None):
         """Removes the information inside the archive provider, with a like-list directory path. """
         self.removeMetadata(dirpath)
+
+    def defaultMetadataValues(self):
+        """Fills the minimum neccesary metadata values."""
+        self.metadata.setdefault(".uniqueID", None)
+        self.metadata.setdefault(".dataHash", None)
+        self.metadata.setdefault(".calculatedInformation", None)
 
     def readMetadata(self, dirpath=[]):
         """Removes the metadata inside the archive provider, with a like-list directory path. """

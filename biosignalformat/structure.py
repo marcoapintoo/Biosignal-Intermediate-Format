@@ -52,6 +52,12 @@ class Experiment(BaseFile):
         """Generates a hash code with the objects."""
         self.hash_me("-".join(child.objectHash for child in self.subjects))
 
+    def defaultMetadataValues(self):
+        """Fills the minimum neccesary metadata values."""
+        super(Experiment, self).defaultMetadataValues()
+        self.metadata.setdefault(".original_type", "")
+        self.metadata.setdefault(".creator", "BiosignalFormat Tools")
+
 
 class Subject(BaseFile):
     """Represents a subject experiment in the sense of BIF."""
@@ -100,9 +106,18 @@ class Subject(BaseFile):
     def archiver(self):
         return self.experiment.archiver
 
+    def defaultMetadataValues(self):
+        """Fills the minimum neccesary metadata values."""
+        super(Subject, self).defaultMetadataValues()
+        self.metadata.setdefault("name", "")
+        self.metadata.setdefault("gender", "")
+        self.metadata.setdefault("age", -1)
+        self.metadata.setdefault("description", "")
+
 
 class Session(BaseFile):
     """Represents a session experiment of a subject in the sense of BIF."""
+    #ADD Event support in an external file .event.json
     def __init__(self, metadata={}):
         super(Session, self).__init__(metadata)
         self.subject = None
@@ -138,6 +153,12 @@ class Session(BaseFile):
 
     def updateHash(self):
         self.hash_me("-".join(child.objectHash for child in self.channels))
+
+    def defaultMetadataValues(self):
+        """Fills the minimum neccesary metadata values."""
+        super(Subject, self).defaultMetadataValues()
+        self.metadata.setdefault("recording-start-time", [0,0,0,0,0])
+        self.metadata.setdefault("sweep-number", 0)
 
     @property
     def pathname(self):
@@ -185,6 +206,17 @@ class Channel(BaseFile):
 
     def updateHash(self):
         self.objectHash = self.data.objectHash
+
+    def defaultMetadataValues(self):
+        """Fills the minimum neccesary metadata values."""
+        super(Subject, self).defaultMetadataValues()
+        self.metadata.setdefault("manufacturer", "?")
+        self.metadata.setdefault("label", "?")
+        self.metadata.setdefault("unit", "?")
+        self.metadata.setdefault("time-offset", 0)
+        self.metadata.setdefault("impedance", 0)
+        self.metadata.setdefault("sampling-rate", 0)
+        self.metadata.setdefault("filters", [])
 
     @property
     def archiver(self):
