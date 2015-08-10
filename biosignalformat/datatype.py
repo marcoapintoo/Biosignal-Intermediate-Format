@@ -11,8 +11,11 @@ class StoredData(object):
         self.file_name = file_name
         self.objectHash = None
 
-    def set(self, data):
-        strdata = json.dumps(data)
+    def set(self, data, indent=None):
+        if indent is not None:
+            strdata = json.dumps(data, indent=indent)
+        else:
+            strdata = json.dumps(data)
         self.archiver.add(self.file_name, strdata)
         strdata = None
 

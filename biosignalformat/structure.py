@@ -4,7 +4,7 @@ import sys
 import uuid
 import ujson as json
 import hashlib
-from datatype import SegmentedData
+from datatype import SegmentedData, StoredData
 from base import BaseFile
 
 
@@ -116,13 +116,15 @@ class Subject(BaseFile):
 
 
 class Session(BaseFile):
+    EventFileName = ".event"
     """Represents a session experiment of a subject in the sense of BIF."""
-    #ADD Event support in an external file .event.json
     def __init__(self, metadata={}):
         super(Session, self).__init__(metadata)
         self.subject = None
         self.channels = []
         self.deletedChannels = []
+        self.events = []
+        self.event_handler = None
 
     def write(self):
         """Write the content inside the archive provide."""
@@ -132,6 +134,9 @@ class Session(BaseFile):
         for channel in self.deletedChannels:
             channel.remove()
         self.deletedChannels = []
+        if self.event_handler is None:
+            self.event_handler = StoredData(self, self.pathname + [self.EventFileName])
+        self.event_handler.set(SessionEvent.toJson(self.events), indent=4)
 
     def remove(self):
         """Removes the content inside the archive provide."""
@@ -140,6 +145,8 @@ class Session(BaseFile):
             channel.remove()
         self.deletedChannels = []
         self.writeMetadata()
+        self.events = {}
+        self.event_handler.set([])
 
     def addChannel(self, channel):
         """Add a channel dataset, recognizing it as a child XD."""
@@ -150,6 +157,9 @@ class Session(BaseFile):
         """Remove a session."""
         self.channels.remove(channel)
         self.deletedChannels.append(channel)
+
+    def addEvent(self, event_data):
+        self.events.append(event_data)
 
     def updateHash(self):
         self.hash_me("-".join(child.objectHash for child in self.channels))
@@ -167,6 +177,27 @@ class Session(BaseFile):
     @property
     def archiver(self):
         return self.subject.archiver
+
+class SessionEvent(object):
+    """docstring for SessionEvent"""
+    def __init__(self, time=0, event_name="Unknown", description=""):
+        super(SessionEvent, self).__init__()
+        self.time = time
+        self.event_name = event_name
+        self.description = description
+
+    def asDict(self):
+        return {"time": self.time, "event_name": self.event_name, "description": self.description}
+
+    @classmethod
+    def toJson(cls, event_list):
+        return [o.asDict() for o in event_list]
+
+    @classmethod
+    def fromJson(cls, event_json_list):
+        return [SessionEvent(*o) for o in event_json_list]
+
+
 
 
 class Channel(BaseFile):

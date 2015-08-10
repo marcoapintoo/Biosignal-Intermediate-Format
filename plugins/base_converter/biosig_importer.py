@@ -36,7 +36,7 @@ class BiosigCaller(object):
     def recognize_event(self, event):
         event_type = biosig_constant.event_codes.get(event["TYP"], "User-defined event")
         event_time = self.get_number(event, "POS", -1)
-        return event_type, event_time
+        return event_time, event_type
 
     def get_number(self, data, key, default_value):
         """Simple, but common operation for obtaining a number from a dict."""
@@ -87,50 +87,73 @@ class BiosigCaller(object):
 
 class EDFImporter(BiosigCaller):
     """docstring for EDFImporter"""
-    def __init__(self, origin_file, dest_file):
+    def __init__(self, origin_file, dest_file=None, experiment=None, subject=None):
         super(EDFImporter, self).__init__(origin_file, dest_file)
+        if dest_file is None and experiment is None and subject is None:
+            raise Exception("Must be indicate a destination file name for EDFImporter!")
+        self.experiment = experiment
+        self.subject = subject
 
     def create_file(self):
-        archiver = SevenZipArchiveProvider(self.dest_file)
+        if self.experiment is None and self.subject is not None:
+            self.experiment = self.subject.experiment
+        if self.experiment is None:
+            archiver = SevenZipArchiveProvider(self.dest_file)
+            self.experiment = self._create_experiment(archiver)
+        if self.subject is None:
+            self.subject = self._create_subject(self.experiment, self.json_data)
+        session = self._create_session(self.subject, self.json_data)
+        self._create_event(session, self.json_data)
+        self._create_channel(session, self.json_data)
+        self.experiment.write()
+
+    def _create_experiment(self, archiver):
         experiment = Experiment()
         experiment.metadata[".original_type"] = "EDF"
         experiment.metadata[".creator"] = "BiosignalFormat Tools - EDF Importer"
         experiment.setArchiver(archiver)
+        return experiment
 
+    def _create_subject(self, experiment, json_data):
         subject = Subject()
-        subject.metadata["name"] = self.json_data["Patient"]["Name"]
-        subject.metadata["gender"] = self.json_data["Patient"]["Gender"]
-        subject.metadata["age"] = self.json_data["Patient"].get("Age", -1)
+        subject.metadata["name"] = json_data["Patient"]["Name"]
+        subject.metadata["gender"] = json_data["Patient"]["Gender"]
+        subject.metadata["age"] = json_data["Patient"].get("Age", -1)
         subject.metadata["description"] = ""
         experiment.addSubject(subject)
+        return subject
 
+    def _create_session(self, subject, json_data):
         session = Session()
-        session.metadata["recording-start-time"] = self.process_datetime(self.json_data["StartOfRecording"])
-        session.metadata["sweep-number"] = self.json_data["NumberOfSweeps"]
+        session.metadata["recording-start-time"] = self.process_datetime(json_data["StartOfRecording"])
+        session.metadata["sweep-number"] = json_data["NumberOfSweeps"]
         subject.addSession(session)
+        return session
 
-        for event in self.json_data["EVENT"]:
-            self.recognize_event(event)
+    def _create_event(self, session, json_data):
+        for event in json_data["EVENT"]:
+            event_data = self.recognize_event(event)
+            session_event = SessionEvent(time=event_data[0], event_name=event_data[1])
+            session.addEvent(session_event)
 
-        for channel_info in self.json_data["CHANNEL"]:
+    def _create_channel(self, session, json_data):
+        for channel_info in json_data["CHANNEL"]:
             if "annotations" in channel_info["Label"].lower():
                 continue
             channel_id = "{0:02}".format(channel_info["ChannelNumber"])
             channel_name = self.channel_data_basename + ".a" + channel_id
             scale, unit = self.recognize_scale(channel_info["PhysicalUnit"])
-            #Unnecesary:
-            #offset = self.get_number(channel_info, "offset", 0)
+            #Unnecesary: #offset = self.get_number(channel_info, "offset", 0)
             scale *= self.get_number(channel_info, "scaling", 1)
             channel = Channel()
             session.addChannel(channel)
-            channel.metadata["manufacturer"] = self.json_data["Manufacturer"]["Name"]
+            channel.metadata["manufacturer"] = json_data["Manufacturer"]["Name"]
             channel.metadata["label"] = channel_info["Label"].upper().replace(".", "")
             channel.metadata["unit"] = unit
             channel.metadata["time-offset"] = self.get_number(channel_info, "TimeDelay", 0)
             channel.metadata["impedance"] = self.get_number(channel_info, "Impedance", 0)
             channel.metadata["sampling-rate"] = self.get_number(channel_info, "Samplingrate", 0)
-            channel_data = [float(val.strip())*scale + offset for val in open(channel_name, "r").readlines()]
+            channel_data = [float(val.strip())*scale for val in open(channel_name, "r").readlines()]
             channel.setData(channel_data)
             del channel_data
             channel_data = None
-        experiment.write()
