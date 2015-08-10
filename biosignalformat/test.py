@@ -83,26 +83,29 @@ class TestPlugins(unittest.TestCase):
 class TestConverters(unittest.TestCase):
     def atest_single_edf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.EDFImporter("ExampleEDF.edf", "ExampleEDFAscii.bif.7z")
+        importer = base_converter.EDFImporter("ExampleEDF.edf", SevenZipArchiveProvider("ExampleEDFAscii.bif.7z"))
         importer.convert()
 
     def atest_multiple_edf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.EDFImporter("ExampleEDF.edf", "ExampleMultipleEDFAscii.bif.7z")
+        importer = base_converter.EDFImporter("ExampleEDF.edf", SevenZipArchiveProvider("ExampleMultipleEDFAscii.bif.7z"))
+        #importer = base_converter.EDFImporter("ExampleEDF.edf", ZipArchiveProvider("ExampleMultipleEDFAscii.bif.zip"))
         importer.convert()
         importer2 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment, subject=importer.subject)
         importer2.convert()
         importer3 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment)
         importer3.convert()
 
-    def test_single_bdf(self):
+    def atest_single_bdf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.BDFImporter("ExampleBDF.bdf", "ExampleBDFAscii.bif.7z")
+        #importer = base_converter.BDFImporter("ExampleBDF.bdf", SevenZipArchiveProvider("ExampleBDFAscii.bif.7z"))
+        importer = base_converter.BDFImporter("ExampleBDF.bdf", ZipArchiveProvider("ExampleBDFAscii.bif.zip"))
         importer.convert()
 
-    def otest_multiple_bdf(self):
+    def test_multiple_bdf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.EDFImporter("ExampleBDF.bdf", "ExampleMultipleBDFAscii.bif.7z")
+        #importer = base_converter.EDFImporter("ExampleBDF.bdf", SevenZipArchiveProvider("ExampleMultipleBDFAscii.bif.7z"))
+        importer = base_converter.EDFImporter("ExampleBDF.bdf", ZipArchiveProvider("ExampleMultipleBDFAscii.bif.zip"))
         importer.convert()
         importer2 = base_converter.EDFImporter("ExampleBDF.bdf", experiment=importer.experiment, subject=importer.subject)
         importer2.convert()

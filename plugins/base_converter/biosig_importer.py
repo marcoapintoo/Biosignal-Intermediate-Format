@@ -11,10 +11,10 @@ import biosig_constant
 
 class BiosigCaller(object):
     """docstring for BiosigCaller"""
-    def __init__(self, origin_file, dest_file):
+    def __init__(self, origin_file, archiver):
         super(BiosigCaller, self).__init__()
         self.origin_file = origin_file
-        self.dest_file = dest_file
+        self.archiver = archiver
         self.json_data = {}
         self.__dest_dirname = str(uuid.uuid4())
         self.__ascii_filename = str(uuid.uuid4()) + ".ascii"
@@ -92,9 +92,9 @@ class BiosigCaller(object):
 
 class XDFImporter(BiosigCaller):
     """docstring for XDFImporter"""
-    def __init__(self, origin_file, dest_file=None, experiment=None, subject=None):
-        super(XDFImporter, self).__init__(origin_file, dest_file)
-        if dest_file is None and experiment is None and subject is None:
+    def __init__(self, origin_file, archiver=None, experiment=None, subject=None):
+        super(XDFImporter, self).__init__(origin_file, archiver)
+        if archiver is None and experiment is None and subject is None:
             raise Exception("Must be indicate a destination file name for XDFImporter!")
         self.experiment = experiment
         self.subject = subject
@@ -103,8 +103,7 @@ class XDFImporter(BiosigCaller):
         if self.experiment is None and self.subject is not None:
             self.experiment = self.subject.experiment
         if self.experiment is None:
-            archiver = SevenZipArchiveProvider(self.dest_file)
-            self.experiment = self._create_experiment(archiver)
+            self.experiment = self._create_experiment(self.archiver)
         if self.subject is None:
             self.subject = self._create_subject(self.experiment, self.json_data)
         session = self._create_session(self.subject, self.json_data)
@@ -147,16 +146,17 @@ class XDFImporter(BiosigCaller):
                 continue
             channel_id = "{0:02}".format(channel_info["ChannelNumber"])
             channel_name = self.channel_data_basename + ".a" + channel_id
+            channel_label = channel_info["Label"].upper().replace(".", "")
             scale, unit = self.recognize_scale(channel_info["PhysicalUnit"])
             #Unnecesary: #offset = self.get_number(channel_info, "offset", 0)
             scale *= self.get_number(channel_info, "scaling", 1)
+            if not os.path.exists(channel_name):
+                print "Warning:", channel_name, "(", channel_label, ") cannot be processed!"
+                continue
             channel = Channel()
             session.addChannel(channel)
             channel.metadata["manufacturer"] = json_data["Manufacturer"].get("Name", "unknown")
-            channel.metadata["label"] = channel_info["Label"].upper().replace(".", "")
-            if not os.path.exists(channel_name):
-                print "Warning:", channel_name, "(", channel.metadata["label"], ")" "cannot be processed!"
-                continue
+            channel.metadata["label"] = channel_label
             channel.metadata["unit"] = unit
             channel.metadata["time-offset"] = self.get_number(channel_info, "TimeDelay", 0)
             channel.metadata["impedance"] = self.get_number(channel_info, "Impedance", 0)
