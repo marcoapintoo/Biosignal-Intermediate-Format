@@ -14,7 +14,8 @@ class SevenZipArchiveProvider(object):
 
     def add(self, filename, content):
         """Writes a file inside the archive. Notes that filename is an list-compatible object."""
-        command = self.sevenzip["a"][self.archivename]["-si" + "/".join(filename)] << content
+        #command = self.sevenzip["a"][self.archivename]["-si" + "/".join(filename)] << content
+        command = self.sevenzip["a"][self.archivename]["-si" + "/".join(filename)]["-m0=lzma2"]["-mmt=8"] << content
         command()
 
     def remove(self, filename):

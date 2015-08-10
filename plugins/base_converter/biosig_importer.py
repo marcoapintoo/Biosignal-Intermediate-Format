@@ -53,10 +53,15 @@ class BiosigCaller(object):
         json_name = self.json_data_path
         command = local_cmd["save2gdf"]["-JSON"]["-f=ASCII"][self.origin_file][ascii_name]  > json_name
         command()
+        #Fixing an invalid JSON file generated when a warning is found...
         json_text = open(json_name, "r").read()
         debug_index = json_text.rfind("Debugging Information:")
         if debug_index > 0:
             json_text = json_text[:debug_index]
+        #Fix Nan-value problem
+        json_text = json_text.replace(": nan", ": -1")
+        #Fix Noth-key problem. Missing a comma before
+        json_text = json_text.replace('"Notch"', ',"Notch"')
         self.json_data = json.loads(json_text)
         del json_text
         json_text = None
@@ -85,12 +90,12 @@ class BiosigCaller(object):
         return os.path.realpath(self.__dest_dirname)
 
 
-class EDFImporter(BiosigCaller):
-    """docstring for EDFImporter"""
+class XDFImporter(BiosigCaller):
+    """docstring for XDFImporter"""
     def __init__(self, origin_file, dest_file=None, experiment=None, subject=None):
-        super(EDFImporter, self).__init__(origin_file, dest_file)
+        super(XDFImporter, self).__init__(origin_file, dest_file)
         if dest_file is None and experiment is None and subject is None:
-            raise Exception("Must be indicate a destination file name for EDFImporter!")
+            raise Exception("Must be indicate a destination file name for XDFImporter!")
         self.experiment = experiment
         self.subject = subject
 
@@ -116,8 +121,8 @@ class EDFImporter(BiosigCaller):
 
     def _create_subject(self, experiment, json_data):
         subject = Subject()
-        subject.metadata["name"] = json_data["Patient"]["Name"]
-        subject.metadata["gender"] = json_data["Patient"]["Gender"]
+        subject.metadata["name"] = json_data["Patient"].get("Name", "")
+        subject.metadata["gender"] = json_data["Patient"].get("Gender", "")
         subject.metadata["age"] = json_data["Patient"].get("Age", -1)
         subject.metadata["description"] = ""
         experiment.addSubject(subject)
@@ -147,8 +152,11 @@ class EDFImporter(BiosigCaller):
             scale *= self.get_number(channel_info, "scaling", 1)
             channel = Channel()
             session.addChannel(channel)
-            channel.metadata["manufacturer"] = json_data["Manufacturer"]["Name"]
+            channel.metadata["manufacturer"] = json_data["Manufacturer"].get("Name", "unknown")
             channel.metadata["label"] = channel_info["Label"].upper().replace(".", "")
+            if not os.path.exists(channel_name):
+                print "Warning:", channel_name, "(", channel.metadata["label"], ")" "cannot be processed!"
+                continue
             channel.metadata["unit"] = unit
             channel.metadata["time-offset"] = self.get_number(channel_info, "TimeDelay", 0)
             channel.metadata["impedance"] = self.get_number(channel_info, "Impedance", 0)
@@ -157,3 +165,8 @@ class EDFImporter(BiosigCaller):
             channel.setData(channel_data)
             del channel_data
             channel_data = None
+
+# Creating aliases:
+EDFImporter = XDFImporter
+EDFPlusImporter = XDFImporter
+BDFImporter = XDFImporter

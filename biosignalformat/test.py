@@ -81,18 +81,32 @@ class TestPlugins(unittest.TestCase):
         self.assertEqual(sample.ConstantVariable, 12)
 
 class TestConverters(unittest.TestCase):
-    def test_single_edf(self):
+    def atest_single_edf(self):
         from biosignalformat.external import base_converter
         importer = base_converter.EDFImporter("ExampleEDF.edf", "ExampleEDFAscii.bif.7z")
         importer.convert()
 
-    def test_multiple_edf(self):
+    def atest_multiple_edf(self):
         from biosignalformat.external import base_converter
         importer = base_converter.EDFImporter("ExampleEDF.edf", "ExampleMultipleEDFAscii.bif.7z")
         importer.convert()
         importer2 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment, subject=importer.subject)
         importer2.convert()
         importer3 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment)
+        importer3.convert()
+
+    def test_single_bdf(self):
+        from biosignalformat.external import base_converter
+        importer = base_converter.BDFImporter("ExampleBDF.bdf", "ExampleBDFAscii.bif.7z")
+        importer.convert()
+
+    def otest_multiple_bdf(self):
+        from biosignalformat.external import base_converter
+        importer = base_converter.EDFImporter("ExampleBDF.bdf", "ExampleMultipleBDFAscii.bif.7z")
+        importer.convert()
+        importer2 = base_converter.EDFImporter("ExampleBDF.bdf", experiment=importer.experiment, subject=importer.subject)
+        importer2.convert()
+        importer3 = base_converter.EDFImporter("ExampleBDF.bdf", experiment=importer.experiment)
         importer3.convert()
 
 def test_all():
