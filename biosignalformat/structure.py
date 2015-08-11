@@ -27,6 +27,7 @@ class Experiment(BaseFile):
             subject.remove()
         self.deletedSubjects = []
         self.writeMetadata()
+        self.archiver.force_write()
 
     def remove(self):
         """Operation not allowed at Experiment-level."""

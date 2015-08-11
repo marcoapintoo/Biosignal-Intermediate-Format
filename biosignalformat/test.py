@@ -81,9 +81,10 @@ class TestPlugins(unittest.TestCase):
         self.assertEqual(sample.ConstantVariable, 12)
 
 class TestConverters(unittest.TestCase):
-    def atest_single_edf(self):
+    def test_single_edf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.EDFImporter("ExampleEDF.edf", SevenZipArchiveProvider("ExampleEDFAscii.bif.7z"))
+        #importer = base_converter.EDFImporter("ExampleEDF.edf", SevenZipArchiveProvider("ExampleEDFAscii.bif.7z"))
+        importer = base_converter.EDFImporter("ExampleEDF.edf", XArchiveProvider("ExampleEDFAscii.bif.zip"))
         importer.convert()
 
     def atest_multiple_edf(self):
@@ -105,7 +106,7 @@ class TestConverters(unittest.TestCase):
     def test_multiple_bdf(self):
         from biosignalformat.external import base_converter
         #importer = base_converter.EDFImporter("ExampleBDF.bdf", SevenZipArchiveProvider("ExampleMultipleBDFAscii.bif.7z"))
-        importer = base_converter.EDFImporter("ExampleBDF.bdf", ZipArchiveProvider("ExampleMultipleBDFAscii.bif.zip"))
+        importer = base_converter.EDFImporter("ExampleBDF.bdf", XArchiveProvider("ExampleMultipleBDFAscii-3.bif.zip"))
         importer.convert()
         importer2 = base_converter.EDFImporter("ExampleBDF.bdf", experiment=importer.experiment, subject=importer.subject)
         importer2.convert()
