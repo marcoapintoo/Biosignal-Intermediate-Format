@@ -97,7 +97,7 @@ class TestConverters(unittest.TestCase):
         importer3 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment)
         importer3.convert()
 
-    def atest_single_bdf(self):
+    def test_single_bdf(self):
         from biosignalformat.external import base_converter
         #importer = base_converter.BDFImporter("ExampleBDF.bdf", SevenZipArchiveProvider("ExampleBDFAscii.bif.7z"))
         importer = base_converter.BDFImporter("ExampleBDF.bdf", ZipArchiveProvider("ExampleBDFAscii.bif.zip"))
