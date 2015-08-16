@@ -4,7 +4,7 @@ from biosignalformat import *
 
 class TestBaseObjects(unittest.TestCase):
     def test_MinimalExperiment(self):
-        provider = SevenZipArchiveProvider("experiment001.7z")
+        provider = XArchiveProvider("experiment001.7z")
         #provider = ZipArchiveProvider("experiment001.zip")
         experiment = Experiment({
             "name": "Exp!",
@@ -19,7 +19,7 @@ class TestBaseObjects(unittest.TestCase):
         self.assertEqual(metadata["description"], "blah!")
 
     def test_MinimalStructure7z(self):
-        provider = SevenZipArchiveProvider("experiment002B.7z")
+        provider = XArchiveProvider("experiment002B.7z")
         experiment = Experiment({
             "name": "Exp!",
             "description": "blah!"
@@ -89,7 +89,7 @@ class TestConverters(unittest.TestCase):
 
     def atest_multiple_edf(self):
         from biosignalformat.external import base_converter
-        importer = base_converter.EDFImporter("ExampleEDF.edf", SevenZipArchiveProvider("ExampleMultipleEDFAscii.bif.7z"))
+        importer = base_converter.EDFImporter("ExampleEDF.edf", XZipArchiveProvider("ExampleMultipleEDFAscii.bif.7z"))
         #importer = base_converter.EDFImporter("ExampleEDF.edf", ZipArchiveProvider("ExampleMultipleEDFAscii.bif.zip"))
         importer.convert()
         importer2 = base_converter.EDFImporter("ExampleEDF2.edf", experiment=importer.experiment, subject=importer.subject)
@@ -100,7 +100,7 @@ class TestConverters(unittest.TestCase):
     def test_single_bdf(self):
         from biosignalformat.external import base_converter
         #importer = base_converter.BDFImporter("ExampleBDF.bdf", SevenZipArchiveProvider("ExampleBDFAscii.bif.7z"))
-        importer = base_converter.BDFImporter("ExampleBDF.bdf", ZipArchiveProvider("ExampleBDFAscii.bif.zip"))
+        importer = base_converter.BDFImporter("ExampleBDF.bdf", XArchiveProvider("ExampleBDFAscii.bif.zip"))
         importer.convert()
 
     def test_multiple_bdf(self):
